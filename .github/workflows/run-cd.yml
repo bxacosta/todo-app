@@ -1,0 +1,76 @@
+# Flujo para crear release, ejecutar pruebas ent-to-end y desplegar en PRO
+name: Distribución Continua
+
+on:
+  # Dispara el flujo en un evento push de una etiqueta
+  push:
+    tags: [ 'v*' ]
+  # Permite ejecutar este flujo manualmente desde la pestaña de "Actions"
+  workflow_dispatch:
+
+jobs:
+  # Instala las dependencias
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Construir proyecto
+        run: npm run build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  # Pruebas end-2-end
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: 20
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+      - name: Instala Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Ejecutar pruebas
+        run: npx playwright test
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  # Crea un nuevo release
+  release:
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crear release
+        uses: actions/checkout@v4
+      - uses: softprops/action-gh-release@v1
+
+  # Despliega en ambiente de PRE
+  deploy:
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+      - name: Despliega en Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ vars.PROJECT_NAME_PRO }}
