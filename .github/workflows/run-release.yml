@@ -1,0 +1,22 @@
+# Flujo para crear release, ejecutar pruebas ent-to-end y desplegar en PRO
+name: Distribución Continua
+
+on:
+  # Dispara el flujo en un evento de solicitud de push o pull a la rama "main"
+  push:
+    tags: [ 'v*' ]
+  # Permite ejecutar este flujo manualmente desde la pestaña de "Actions"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Crea el release
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crear release
+        uses: actions/checkout@v4
+      - uses: softprops/action-gh-release@v1

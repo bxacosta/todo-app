@@ -1,0 +1,79 @@
+# Flujo para ejecutar pruebas y análisis estático de código
+name: Integración Continua
+
+on:
+  # Dispara el flujo en un evento de solicitud de push o pull a la rama "main"
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Permite ejecutar este flujo manualmente desde la pestaña de "Actions"
+  workflow_dispatch:
+
+jobs:
+  # Instala las dependencias
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Construir proyecto
+        run: npm run build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  # Análisis estático del código
+  lint:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Análisis estático
+        run: npm run lint
+
+  # Tests unitarios
+  test:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Ejecutar pruebas
+        run: npm run test
+
+  # Despliega en ambiente de PRE
+  deploy:
+    # Se ejecuta unicamente en el evento de push
+    if: ${{ github.event_name == 'push' }}
+    needs: [ lint, test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+      - name: Despliega en Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ vars.PROJECT_NAME }}
