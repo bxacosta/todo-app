@@ -25,7 +25,7 @@ jobs:
         run: npm ci
       - name: Construir proyecto
         run: npm run build
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
@@ -67,7 +67,7 @@ jobs:
     needs: [ lint, test ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
