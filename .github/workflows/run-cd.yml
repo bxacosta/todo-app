@@ -29,6 +29,7 @@ jobs:
 
   # Pruebas end-2-end
   e2e:
+    needs: install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4
