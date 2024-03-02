@@ -26,6 +26,3 @@ dist-ssr
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-
-# NPM dependency lockfile
-package-lock.json
