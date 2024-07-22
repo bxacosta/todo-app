@@ -5,6 +5,6 @@ import {App} from './App'
 describe("App test", () => {
     test("should show title", () => {
         render(<App/>);
-        expect(screen.getByText("Workflow")).toBeDefined()
+        expect(screen.getByText("To-Do App")).toBeDefined()
     })
 })
