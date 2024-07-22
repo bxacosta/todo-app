@@ -1,8 +1,9 @@
 import PropTypes from "prop-types";
 
-export function TodoItem({todo}) {
+export function TodoItem({todo, toggleTodo}) {
     return (
         <li
+            onClick={() => toggleTodo(todo.id)}
             style={{textDecoration: todo.completed ? 'line-through' : 'none'}}
         >
             {todo.text}
@@ -15,5 +16,6 @@ TodoItem.propTypes = {
         id: PropTypes.number.isRequired,
         text: PropTypes.string.isRequired,
         completed: PropTypes.bool.isRequired
-    }).isRequired
+    }).isRequired,
+    toggleTodo: PropTypes.func.isRequired
 };

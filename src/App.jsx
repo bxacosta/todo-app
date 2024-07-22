@@ -17,11 +17,19 @@ export function App() {
         setTodos([...todos, newTodo]);
     };
 
+    const toggleTodo = (id) => {
+        setTodos(
+            todos.map((todo) =>
+                todo.id === id ? {...todo, completed: !todo.completed} : todo
+            )
+        );
+    };
+
     return (
         <div className="App">
             <header className="App-header">
                 <h1>To-Do App</h1>
-                <TodoList todos={todos}/>
+                <TodoList todos={todos} toggleTodo={toggleTodo}/>
                 <TodoInput addTodo={addTodo}/>
             </header>
         </div>
